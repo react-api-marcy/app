@@ -10,15 +10,15 @@ Our application, [app name] is for [target audience]. It allows users to [what i
 
 This application will use the [name of API] API. Below are the documentation and specific endpoints we intend to use.
 
-- Link to API documentation: https://www.tomorrow.io/weather-api/?utm_adgroup=&utm_source=google&utm_medium=cpc&utm_campaign=&utm_term=weather%20api&utm_content=643957741835&hsa_acc=4679135646&hsa_kw=weather%20api&hsa_net=adwords&hsa_cam=18531164378&hsa_ad=643957741835&hsa_grp=145826996807&hsa_src=g&hsa_mt=b&hsa_tgt=kwd-300556592351&hsa_ver=3&gad_source=1&gclid=Cj0KCQjw-r-vBhC-ARIsAGgUO2C5KWp4A6hY30LzjgDVTNUWVPHs0C9dOrLV5D_0InCJYSZmbhYTGN8aAidQEALw_wcB
-- [API endpoint #1]
+- Link to API documentation: https://docs.tomorrow.io/reference/welcome?_gl=1*ztwx1m*_gcl_aw*R0NMLjE3MTA2ODg4OTEuQ2owS0NRanctci12QmhDLUFSSXNBR2dVTzJDNUtXcDRBNmhZMzBMempnRFZUTlVXVlBIczBDOWRPckxWNURfMEluQ0pZU1ptYmhZVEdOOGFBaWRRRUFMd193Y0I.*_gcl_au*OTQyMzY4NTIuMTcxMDI2Mzg4OS4xNjM5NDMzOTAzLjE3MTAyNjQwNDguMTcxMDI2NDA0OA..*_up*MQ..&gclid=Cj0KCQjw-r-vBhC-ARIsAGgUO2C5KWp4A6hY30LzjgDVTNUWVPHs0C9dOrLV5D_0InCJYSZmbhYTGN8aAidQEALw_wcB
+- Fetching live weather at any given location
   - [List of data values used by the endpoint]
-- [API endpoint #2]
+- Fetching weather forecast
   - [List of data values used by the endpoint]
-- [API endpoint #3]
+- Fetching weather history
   - [List of data values used by the endpoint]
 
-[If your API requires an API key, say so here.]
+API requires an api key
 
 ## 👩‍💻 MVP User Stories
 
