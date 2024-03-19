@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 .leaflet-container {
-  height: 25rem;
-  width: 50rem
+  height: 100%;
+  width: 100%;
 }
+.leaflet-control-attribution {
+  display: none;
+}
+
