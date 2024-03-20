@@ -1,14 +1,12 @@
-
-import './App.css'
-import HomeDash from './components/HomeDash';
+import "./App.css";
+import HomeDash from "./components/HomeDash";
 
 function App() {
-  
   return (
     <>
-    <HomeDash />
+      <HomeDash />
     </>
-  )
+  );
 }
 
-export default App
+export default App;

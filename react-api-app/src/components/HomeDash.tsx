@@ -16,7 +16,7 @@ function HomeDash() {
         <Forecast />
         <WeatherGraph />
       </div>
-      <div ></div>
+      <div></div>
     </div>
   );
 }
