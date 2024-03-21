@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useGeolocated } from "react-geolocated";
 
-const API_KEY = import.meta.env.VITE_TOMORROW_KEY;
-const API_BASE = "https://api.tomorrow.io/v4/weather";
+const TOMORROW_KEY = import.meta.env.VITE_TOMORROW_KEY;
+const TOMORROW_BASE = "https://api.tomorrow.io/v4/weather";
+
+const OPENWEATHER_KEY = import.meta.env.VITE_OPENWEATHER_KEY;
+const OPENWEATHER_BASE = "https://api.openweathermap.org/geo/1.0";
 
 export const fetchJson = async <T>(url: RequestInfo | URL, init?: RequestInit) => {
   try {
@@ -43,30 +46,26 @@ export type ForecastResponse = {
   };
 };
 
-export const fetchForecast = async (loc: UserLocation): Promise<ForecastResponse | undefined> => {
-  const cachedData = localStorage.getItem("forecast");
-  const lastFetchTime = localStorage.getItem("last_fetch_time");
-
-  const currentTime = new Date().getTime();
-  const twentyMinutes = 20 * 60 * 1000;
-
-  if (cachedData && lastFetchTime) {
-    const timeSinceLastFetch = currentTime - parseInt(lastFetchTime, 10);
-    if (timeSinceLastFetch < twentyMinutes) {
-      console.log("retrieved forecast from cache");
-      return JSON.parse(cachedData) as ForecastResponse;
-    }
-  }
-
-  const url = new URL(`${API_BASE}/forecast?location=${loc.lat},${loc.lon}`);
-  url.searchParams.set("apikey", API_KEY);
+export const fetchForecast = (loc: UserLocation) => {
+  const url = new URL(`${TOMORROW_BASE}/forecast?location=${loc.lat},${loc.lon}`);
+  url.searchParams.set("apikey", TOMORROW_KEY);
   url.searchParams.set("units", "imperial");
+  return fetchJson<ForecastResponse>(url);
+};
 
-  const forecast = await fetchJson<ForecastResponse>(url);
-  localStorage.setItem("weatherData", JSON.stringify(forecast)); // Convert object to string for storage
-  localStorage.setItem("lastFetchTime", currentTime.toString());
-  console.log("retrieved forecast from API");
-  return forecast;
+export type ReverseGeocodeResponse = {
+  name: string;
+  country: string;
+  state?: string;
+  local_names: { en?: string };
+}[];
+
+export const reverseGeocode = ({ lat, lon }: UserLocation) => {
+  const url = new URL(`${OPENWEATHER_BASE}/reverse?lat=${lat}&lon=${lon}`);
+  url.searchParams.set("appid", OPENWEATHER_KEY);
+  url.searchParams.set("limit", "1");
+  // identical latitude and longitude coords will always return the same city, so cache indefinitely
+  return fetchJson<ReverseGeocodeResponse>(url, { cache: "force-cache" });
 };
 
 type LocationResponse = {
@@ -76,13 +75,16 @@ type LocationResponse = {
   lon?: number;
 };
 
-export type UserLocation = { lat: number; lon: number };
+export class UserLocation {
+  constructor(public lat: number, public lon: number) {}
+
+  toString() {
+    return `latitude=${this.lat}, longitude=${this.lon}`;
+  }
+}
 
 export const useLocation = () => {
-  const [location, setLocation] = useState<UserLocation>({
-    lat: 40.7484,
-    lon: -73.862,
-  });
+  const [location, setLocation] = useState(new UserLocation(40.7484, -73.862));
   useGeolocated({
     positionOptions: {
       enableHighAccuracy: true,
@@ -97,7 +99,7 @@ export const useLocation = () => {
       console.warn("couldn't get geolocation, attempting fallback");
 
       const url = new URL("http://ip-api.com/json/?fields=status,message,lat,lon");
-      fetchJson<LocationResponse>(url, { cache: "force-cache" }).then((resp) => {
+      fetchJson<LocationResponse>(url).then((resp) => {
         if (
           !resp ||
           resp.status !== "success" ||
@@ -107,8 +109,8 @@ export const useLocation = () => {
           return console.warn(`couldn't get fallback geolocation: ${resp?.message}`);
         }
 
-        console.log(`got fallback location from IP: ${resp}`);
-        setLocation({ lat: resp.lat, lon: resp.lon });
+        console.log(`got fallback location from IP:`, resp);
+        setLocation(new UserLocation(resp.lat, resp.lon));
       });
     },
   });
@@ -125,7 +127,7 @@ export class CurrentWeatherStats {
   message: string;
 
   constructor(timeline: Timeline) {
-    const {cloudCover: clouds, rainIntensity} = timeline.values;
+    const { cloudCover: clouds, rainIntensity } = timeline.values;
     if (rainIntensity > 0) {
       this.icon = "/rainy-day.png";
       if (rainIntensity < 10) {
