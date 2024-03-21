@@ -7,6 +7,7 @@ import WeatherGraph from "./WeatherGraph";
 import {
   CurrentWeatherStats,
   ForecastResponse,
+  UserLocation,
   fetchForecast,
   getCurrentWeatherStats,
   useLocation,

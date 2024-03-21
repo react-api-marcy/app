@@ -27,10 +27,10 @@ export default function CurrentWeather({ values }: { values: CurrentWeatherStats
             <h1 className="text-center">{values.message}</h1>
           </div>
         </div>
-        <div className="flex">
-          <img src="../../"></img>
-          <img></img>
-          <img></img>
+        <div  className="flex ">
+          <img src="/drop.png"></img>
+          <img src="/cloud.png"></img>
+          <img src="/wind.png"></img>
         </div>
       </div>
     </div>
