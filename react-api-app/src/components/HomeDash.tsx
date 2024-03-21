@@ -29,7 +29,7 @@ export default function HomeDash() {
 
       setForecast(new CurrentWeatherStats(timeline));
     })();
-  }, []);
+  }, [location]);
 
   // console.log(location);
   // console.log("forecast", forecast);
