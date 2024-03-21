@@ -25,6 +25,9 @@ export type Values = {
   rainIntensity: number;
   sleetIntesity: number;
   snowIntensity: number;
+  windSpeed: number;
+  cloudCover: number;
+  humidity: number;
 };
 
 export type Timeline = {
@@ -40,9 +43,9 @@ export type ForecastResponse = {
   };
 };
 
-export const fetchForecast = async (loc: UserLocation) => {
-  const cachedData = localStorage.getItem('forecast')
-  const lastFetchTime = localStorage.getItem('last_fetch_time')
+export const fetchForecast = async (loc: UserLocation): Promise<ForecastResponse | undefined> => {
+  const cachedData = localStorage.getItem("forecast");
+  const lastFetchTime = localStorage.getItem("last_fetch_time");
 
   const currentTime = new Date().getTime();
   const twentyMinutes = 20 * 60 * 1000;
@@ -50,41 +53,35 @@ export const fetchForecast = async (loc: UserLocation) => {
   if (cachedData && lastFetchTime) {
     const timeSinceLastFetch = currentTime - parseInt(lastFetchTime, 10);
     if (timeSinceLastFetch < twentyMinutes) {
-      return Promise.resolve(JSON.parse(cachedData));
+      console.log("retrieved forecast from cache");
+      return JSON.parse(cachedData) as ForecastResponse;
     }
   }
 
+  const url = new URL(`${API_BASE}/forecast?location=${loc.lat},${loc.lon}`);
+  url.searchParams.set("apikey", API_KEY);
+  url.searchParams.set("units", "imperial");
 
-  const location =
-    loc.kind === "precise" ? `${loc.lat},${loc.lon}` : `${loc.zip}%20${loc.countryCode}`;
-  // UrlSearchParams::set encodes spaces using '+', but tomorrow's api expects %20, so encode
-  // manually
-  const url = new URL(`${API_BASE}/forecast?location=${location}&apikey=${API_KEY}&units=imperial`);
   const forecast = await fetchJson<ForecastResponse>(url);
-  localStorage.setItem('weatherData', JSON.stringify(forecast)); // Convert object to string for storage
-  localStorage.setItem('lastFetchTime', currentTime.toString());
-  console.log(forecast)
-  return forecast
+  localStorage.setItem("weatherData", JSON.stringify(forecast)); // Convert object to string for storage
+  localStorage.setItem("lastFetchTime", currentTime.toString());
+  console.log("retrieved forecast from API");
+  return forecast;
 };
 
 type LocationResponse = {
   status: "success" | "fail";
   message: string;
-  countryCode?: string;
-  zip?: string;
   lat?: number;
   lon?: number;
 };
 
-export type UserLocation =
-  | { kind: "precise"; lat: number; lon: number }
-  | { kind: "weak"; zip: string; countryCode: string };
+export type UserLocation = { lat: number; lon: number };
 
 export const useLocation = () => {
   const [location, setLocation] = useState<UserLocation>({
-    kind: "weak",
-    countryCode: "US",
-    zip: "11232",
+    lat: 40.7484,
+    lon: -73.862,
   });
   useGeolocated({
     positionOptions: {
@@ -94,23 +91,24 @@ export const useLocation = () => {
     watchLocationPermissionChange: true,
     onSuccess: ({ coords }) => {
       console.log("got location from browser");
-      setLocation({ kind: "precise", lat: coords.latitude, lon: coords.longitude });
+      setLocation({ lat: coords.latitude, lon: coords.longitude });
     },
-    onError: (err) => {
+    onError: (_err) => {
       console.warn("couldn't get geolocation, attempting fallback");
 
-      const url = new URL("http://ip-api.com/json/?fields=status,message,countryCode,zip,lat,lon");
+      const url = new URL("http://ip-api.com/json/?fields=status,message,lat,lon");
       fetchJson<LocationResponse>(url, { cache: "force-cache" }).then((resp) => {
-        if (!resp || resp.status !== "success") {
+        if (
+          !resp ||
+          resp.status !== "success" ||
+          resp.lon === undefined ||
+          resp.lat === undefined
+        ) {
           return console.warn(`couldn't get fallback geolocation: ${resp?.message}`);
         }
 
-        console.log(`got fallback location: ${resp}`);
-        if (resp?.lat && resp?.lon) {
-          setLocation({ kind: "precise", lat: resp.lat, lon: resp.lon });
-        } else {
-          setLocation({ kind: "weak", zip: resp?.zip!, countryCode: resp?.countryCode! });
-        }
+        console.log(`got fallback location from IP: ${resp}`);
+        setLocation({ lat: resp.lat, lon: resp.lon });
       });
     },
   });
@@ -118,36 +116,35 @@ export const useLocation = () => {
   return location;
 };
 
+export class CurrentWeatherStats {
+  temp: number;
+  clouds: number;
+  wind: number;
+  humidity: number;
+  icon: string;
+  message: string;
 
-export interface CurrentWeatherStats {
-  temp: number, clouds: number, wind: number, humidity: number, icon: string, message: string
-}
-export const getCurrentWeatherStats = (forecast: any) => {
-  let temp = forecast?.timelines?.minutely?.[0]?.values.temperature
-  let humidity = forecast?.timelines?.minutely?.[0]?.values.humidity;
-  let wind = forecast?.timelines?.minutely?.[0]?.values.windSpeed
-  let clouds = forecast?.timelines?.minutely?.[0]?.values.cloudCover
-  let rainIntensity = forecast?.timelines?.minutely?.[0]?.values.rainIntensity
-
-  let icon;
-  let message;
-  if (rainIntensity > 0) {
-    icon = '/rainy-day.png'
-    if (rainIntensity < 10) {
-      message = 'Light Rain'
-    } else if (rainIntensity > 30) {
-      message = 'Moderate Rain'
+  constructor(timeline: Timeline) {
+    const {cloudCover: clouds, rainIntensity} = timeline.values;
+    if (rainIntensity > 0) {
+      this.icon = "/rainy-day.png";
+      if (rainIntensity < 10) {
+        this.message = "Light Rain";
+      } else if (rainIntensity > 30) {
+        this.message = "Moderate Rain";
+      } else {
+        this.message = "Heavy Rain";
+      }
+    } else if (clouds < 20) {
+      this.icon = "/sunny.png";
+      this.message = "Mostly Sunny";
     } else {
-      message = 'Heavy Rain'
+      this.icon = "/cloudy.png";
+      this.message = "Cloudy";
     }
-
-  } else if (clouds < 20) {
-    icon = '/sunny.png'
-    message = 'Mostly Sunny'
-  } else {
-    icon = '/cloudy.png'
-    message = 'Cloudy'
+    this.temp = timeline.values.temperature;
+    this.clouds = clouds;
+    this.wind = timeline.values.windSpeed;
+    this.humidity = timeline.values.humidity;
   }
-
-  return { temp, clouds, wind, humidity, icon, message } as CurrentWeatherStats
 }
