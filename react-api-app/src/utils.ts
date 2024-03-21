@@ -151,3 +151,41 @@ export const getCurrentWeatherStats = (forecast: any) => {
 
   return { temp, clouds, wind, humidity, icon, message } as CurrentWeatherStats
 }
+
+
+export interface dailyStats {
+  formatedDate: string, temp: number, icon: string
+}
+export const getWeeklyWeatherStats = (forecast: any) => {
+
+  const res: {}[] = []
+  const daily = forecast?.timelines?.daily
+  daily.forEach((day: any, i: number) => {
+    // Getting formatted date
+    const dateString = forecast?.timelines?.daily?.[i]?.time;
+    const date = new Date(dateString);
+    const month = date.toLocaleString('default', { month: 'long' });
+    const numDay = date.getDate(); // 21, for example
+    const weekday = date.toLocaleString('default', { weekday: 'short' });
+    const formatedDate = `${numDay} ${month}, ${weekday}`
+
+
+    let high = day[i]?.values.temperatureApparentMax
+    let low = day[i]?.values.temperatureApparentMin
+    let temp = `${Math.floor(high)}°/${Math.floor(low)}°`
+
+    let clouds = day[i]?.values.cloudCoverAvg
+    let rainIntensity = day[i]?.values.rainAccumulationSum
+    let icon;
+    if (rainIntensity > 0) {
+      icon = '/rainy-day.png'
+    } else if (clouds < 20) {
+      icon = '/sunny.png'
+    } else {
+      icon = '/cloudy.png'
+    }
+    res.push({ formatedDate, temp, icon })
+  })
+  return res
+}
+

@@ -2,7 +2,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { UserLocation } from "../utils";
 
-interface PreciseLoc {
+export interface PreciseLoc {
   kind: "precise";
   lat: number;
   lon: number;
