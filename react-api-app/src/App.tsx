@@ -4,9 +4,7 @@ import HomeDash from "./components/HomeDash";
 function App() {
   return (
     <>
-    
-    
-    <div className="relative w-[100vw] h-[100vh]">
+      <div className="relative w-full pb-5 h-full">
         <div className="absolute w-full h-full sky"></div> {/* Background */}
         <div className="absolute w-full h-full backdrop-blur-lg"></div> {/* Backdrop Blur */}
         <div className="relative">
@@ -14,7 +12,6 @@ function App() {
         </div>
       </div>
     </>
-    
   );
 }
 

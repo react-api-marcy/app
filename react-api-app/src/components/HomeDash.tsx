@@ -39,7 +39,7 @@ export default function HomeDash() {
       </div>
       <div className="flex gap-5 w-full justify-center h-[25rem] ">
         <Forecast daily={forecast.timelines.daily} />
-        <WeatherGraph />
+        <WeatherGraph hourly={forecast.timelines.hourly} />
       </div>
       <div></div>
     </div>
