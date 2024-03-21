@@ -36,7 +36,7 @@ const renderCustomizedLabel: React.FC<LabelProps> = (props) => {
 
 export default function WeatherGraph({ hourly }: { hourly: Timeline[] }) {
   const data = getHourlyWeatherStats(hourly);
-  console.log(data);
+  // console.log(data);
   return (
     <div className="w-[61.5%]  pb-[5rem]  bg-opacity-15 bg-white  rounded-[25px]">
       <h1 className="pt-[2rem] pb-5  text-[1.2rem] pl-8">Summary</h1>

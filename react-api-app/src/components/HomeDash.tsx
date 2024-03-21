@@ -19,7 +19,7 @@ export default function HomeDash() {
   const [forecast, setForecast] = useState(mockForecast as unknown as ForecastResponse);
   useEffect(() => {
     (async () => {
-      const forecast = await cachedFetchForecast(location);
+      const forecast = await fetchLocForecast(location);
       if (!forecast) {
         return;
       }
@@ -60,11 +60,14 @@ function findBestLocation(resp?: ReverseGeocodeResponse) {
   let preferred;
   for (const { name, state, local_names } of resp) {
     if (localStorage.getItem(name)) {
-      return name;
+      preferred = name;
+      break;
     } else if (state && localStorage.getItem(state)) {
-      return state;
+      preferred = state;
+      break;
     } else if (local_names.en && localStorage.getItem(local_names.en)) {
-      return local_names.en;
+      preferred = local_names.en;
+      break;
     }
 
     if (!preferred) {
@@ -78,15 +81,15 @@ function findBestLocation(resp?: ReverseGeocodeResponse) {
     }
   }
 
-  return preferred;
+  return preferred!.toLowerCase().replace(/\s+/g, "");
 }
 
-async function cachedFetchForecast(loc: UserLocation) {
+async function fetchLocForecast(loc: UserLocation) {
   const now = Date.now();
   const name = findBestLocation(await reverseGeocode(loc));
   if (name) {
-    const data = localStorage.getItem(name);
     console.log(`geocoded position for ${loc} (${name})`);
+    const data = localStorage.getItem(name);
     if (data) {
       const { forecast, lastFetchTime } = JSON.parse(data);
       const twentyMinutes = 20 * 60 * 1000;

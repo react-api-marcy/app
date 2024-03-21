@@ -50,11 +50,15 @@ export type ForecastResponse = {
   };
 };
 
-export const fetchForecast = (loc: UserLocation) => {
-  const url = new URL(`${TOMORROW_BASE}/forecast?location=${loc.lat},${loc.lon}`);
+export const fetchForecastByLocation = (loc: string) => {
+  const url = new URL(`${TOMORROW_BASE}/forecast?location=${loc}`);
   url.searchParams.set("apikey", TOMORROW_KEY);
   url.searchParams.set("units", "imperial");
   return fetchJson<ForecastResponse>(url);
+};
+
+export const fetchForecast = (loc: UserLocation) => {
+  return fetchForecastByLocation(`${loc.lat},${loc.lon}`);
 };
 
 export type ReverseGeocodeResponse = {
