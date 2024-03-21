@@ -41,12 +41,30 @@ export type ForecastResponse = {
 };
 
 export const fetchForecast = async (loc: UserLocation) => {
+  const cachedData = localStorage.getItem('forecast')
+  const lastFetchTime = localStorage.getItem('last_fetch_time')
+
+  const currentTime = new Date().getTime();
+  const twentyMinutes = 20 * 60 * 1000;
+
+  if (cachedData && lastFetchTime) {
+    const timeSinceLastFetch = currentTime - parseInt(lastFetchTime, 10);
+    if (timeSinceLastFetch < twentyMinutes) {
+      return Promise.resolve(JSON.parse(cachedData));
+    }
+  }
+
+
   const location =
     loc.kind === "precise" ? `${loc.lat},${loc.lon}` : `${loc.zip}%20${loc.countryCode}`;
   // UrlSearchParams::set encodes spaces using '+', but tomorrow's api expects %20, so encode
   // manually
   const url = new URL(`${API_BASE}/forecast?location=${location}&apikey=${API_KEY}&units=imperial`);
-  return await fetchJson<ForecastResponse>(url);
+  const forecast = await fetchJson<ForecastResponse>(url);
+  localStorage.setItem('weatherData', JSON.stringify(forecast)); // Convert object to string for storage
+  localStorage.setItem('lastFetchTime', currentTime.toString());
+  console.log(forecast)
+  return forecast
 };
 
 type LocationResponse = {
@@ -99,3 +117,37 @@ export const useLocation = () => {
 
   return location;
 };
+
+
+export interface CurrentWeatherStats {
+  temp: number, clouds: number, wind: number, humidity: number, icon: string, message: string
+}
+export const getCurrentWeatherStats = (forecast: any) => {
+  let temp = forecast?.timelines?.minutely?.[0]?.values.temperature
+  let humidity = forecast?.timelines?.minutely?.[0]?.values.humidity;
+  let wind = forecast?.timelines?.minutely?.[0]?.values.windSpeed
+  let clouds = forecast?.timelines?.minutely?.[0]?.values.cloudCover
+  let rainIntensity = forecast?.timelines?.minutely?.[0]?.values.rainIntensity
+
+  let icon;
+  let message;
+  if (rainIntensity > 0) {
+    icon = '/rainy-day.png'
+    if (rainIntensity < 10) {
+      message = 'Light Rain'
+    } else if (rainIntensity > 30) {
+      message = 'Moderate Rain'
+    } else {
+      message = 'Heavy Rain'
+    }
+
+  } else if (clouds < 20) {
+    icon = '/sunny.png'
+    message = 'Mostly Sunny'
+  } else {
+    icon = '/cloudy.png'
+    message = 'Cloudy'
+  }
+
+  return { temp, clouds, wind, humidity, icon, message } as CurrentWeatherStats
+}
