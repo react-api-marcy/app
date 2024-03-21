@@ -1,11 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Montagu+Slab:opsz,wght@16..144,100..700&family=Roboto+Slab:wght@100..900&family=Rubik:ital,wght@0,300..900;1,300..900&family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  font-family: "Sarabun", sans-serif;
+  color: white
+}
 .leaflet-container {
   height: 100%;
   width: 100%;
 }
 .leaflet-control-attribution {
   display: none;
+}
+.sky {
+  background-image: url('https://w0.peakpx.com/wallpaper/57/159/HD-wallpaper-blue-sky-clear-sky-clean-weather-peace-space-plain-background.jpg');
+  background-size: cover; /* This ensures your image covers the entire element */
+  background-position: center; /* This centers your image */
 }

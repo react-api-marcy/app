@@ -4,20 +4,36 @@ import CurrentWeather from "./CurrentWeather";
 import Forecast from "./Forecast";
 import Map from "./Map";
 import WeatherGraph from "./WeatherGraph";
-import { ForecastResponse, fetchForecast, useLocation } from "../utils";
+import {
+  CurrentWeatherStats,
+  ForecastResponse,
+  fetchForecast,
+  getCurrentWeatherStats,
+  useLocation,
+} from "../utils";
+const mockCurrent = {
+  clouds: 28,
+  humidity: 86,
+  icon: "/cloudy.png",
+  message: "Cloudy",
+  temp: 38.75,
+  wind: 25.59,
+};
 
 function HomeDash() {
   const location = useLocation();
-  const [forecast, setForecast] = useState<ForecastResponse | undefined>();
+  console.log(location);
+  const [forecast, setForecast] = useState<CurrentWeatherStats | undefined>();
   useEffect(() => {
-    fetchForecast(location).then(setForecast);
-  }, [location]);
-
+    fetchForecast(location).then(getCurrentWeatherStats).then(setForecast);
+  }, []);
+  console.log("forecast", forecast);
+  console.log(mockCurrent);
   return (
-    <div className="flex pt-[5rem] gap-5 justify-center flex-col">
+    <div className="flex z-[1000] relative pt-[5rem] gap-5 justify-center flex-col">
       <div className="flex gap-5 w-full justify-center  h-[20rem]">
-        <CurrentWeather values={forecast?.timelines?.minutely?.[0]?.values} />
-        <Map />
+        <CurrentWeather values={forecast?.temp ? forecast : mockCurrent} />
+        <Map location={location} />
         <Cities />
       </div>
       <div className="flex gap-5 w-full justify-center  h-[25rem] ">
