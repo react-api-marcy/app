@@ -193,7 +193,7 @@ export const getWeeklyWeatherStats = (forecast: any) => {
   return res
 }
 
-type graphDataPoint = {time: string, temp: number}
+export type graphDataPoint = {time: string, temp: number}
 export const getHourlyWeatherStats = (forecast: any) => {
   const hourly = forecast?.timelines?.hourly.slice(0,10)
   const res : Array<graphDataPoint> = []

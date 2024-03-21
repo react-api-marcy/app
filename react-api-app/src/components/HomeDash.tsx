@@ -27,9 +27,9 @@ function HomeDash() {
         <Map location={location as PreciseLoc} />
         <Cities />
       </div>
-      <div className="flex gap-5 w-full justify-center  h-[25rem] ">
+      <div className="flex gap-5 w-full justify-center  h-[25rem]  ">
         <Forecast values={(forecast || mockForecast) as ForecastResponse} />
-        <WeatherGraph />
+        <WeatherGraph values={(forecast || mockForecast) as ForecastResponse} />
       </div>
       <div></div>
     </div>
