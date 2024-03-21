@@ -5,7 +5,6 @@ import Forecast from "./Forecast";
 import Map from "./Map";
 import WeatherGraph from "./WeatherGraph";
 import {
-  CurrentWeatherStats,
   ForecastResponse,
   ReverseGeocodeResponse,
   UserLocation,
@@ -31,15 +30,14 @@ export default function HomeDash() {
 
   // console.log(location);
   // console.log("forecast", forecast);
-  const currentWeather = new CurrentWeatherStats(forecast.timelines.minutely[0].values);
   return (
     <div className="flex z-[1000] relative pt-[5rem] gap-5 justify-center flex-col">
-      <div className="flex gap-5 w-full justify-center  h-[20rem]">
-        <CurrentWeather values={currentWeather} />
+      <div className="flex gap-5 w-full justify-center h-[20rem]">
+        <CurrentWeather values={forecast.timelines.minutely[0].values} />
         <Map location={location} />
         <Cities />
       </div>
-      <div className="flex gap-5 w-full justify-center  h-[25rem] ">
+      <div className="flex gap-5 w-full justify-center h-[25rem] ">
         <Forecast daily={forecast.timelines.daily} />
         <WeatherGraph />
       </div>
