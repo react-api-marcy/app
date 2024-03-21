@@ -12,7 +12,7 @@ import {
   reverseGeocode,
   useLocation,
 } from "../utils";
-import mockForecast from "./mockForecast.json";
+import mockForecast from "../../data/mockForecast.json";
 
 export default function HomeDash() {
   const location = useLocation();
