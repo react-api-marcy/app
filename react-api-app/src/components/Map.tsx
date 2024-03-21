@@ -2,10 +2,10 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { UserLocation } from "../utils";
 import "leaflet/dist/leaflet.css";
 
-export default  function Map({ location }: { location: UserLocation }) {
-  const locationArr: [number, number, number?] = [location.lon, location.lat];
+export default function Map({ location }: { location: UserLocation }) {
+  const locationArr: [number, number, number?] = [location.lat, location.lon];
   return (
-    <div className="w-[40%] rounded-[25px] overflow-hidden h-full">
+    <div className="w-[40%] rounded-[25px] overflow-hidden h-full  ">
       <MapContainer center={locationArr} zoom={13} zoomControl={false}>
         <TileLayer
           attribution=""
