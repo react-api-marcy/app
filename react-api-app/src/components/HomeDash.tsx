@@ -4,45 +4,43 @@ import CurrentWeather from "./CurrentWeather";
 import Forecast from "./Forecast";
 import Map from "./Map";
 import WeatherGraph from "./WeatherGraph";
-import { CurrentWeatherStats, ForecastResponse, ReverseGeocodeResponse, UserLocation, fetchForecast, reverseGeocode, useLocation } from "../utils";
-
-const mockCurrent = {
-  clouds: 28,
-  humidity: 86,
-  icon: "/cloudy.png",
-  message: "Cloudy",
-  temp: 38.75,
-  wind: 25.59,
-};
+import {
+  CurrentWeatherStats,
+  ForecastResponse,
+  ReverseGeocodeResponse,
+  UserLocation,
+  fetchForecast,
+  reverseGeocode,
+  useLocation,
+} from "../utils";
+import mockForecast from "./mockForecast.json";
 
 export default function HomeDash() {
   const location = useLocation();
-  const [forecast, setForecast] = useState<CurrentWeatherStats | undefined>();
-
+  const [forecast, setForecast] = useState(mockForecast as unknown as ForecastResponse);
   useEffect(() => {
     (async () => {
       const forecast = await cachedFetchForecast(location);
-      const timeline = forecast?.timelines?.minutely?.[0];
-      if (!timeline) {
+      if (!forecast) {
         return;
       }
 
-      setForecast(new CurrentWeatherStats(timeline));
+      setForecast(forecast);
     })();
   }, [location]);
 
   // console.log(location);
   // console.log("forecast", forecast);
-
+  const currentWeather = new CurrentWeatherStats(forecast.timelines.minutely[0].values);
   return (
     <div className="flex z-[1000] relative pt-[5rem] gap-5 justify-center flex-col">
-      <div className="flex gap-5 w-full justify-center h-[20rem]">
-        <CurrentWeather values={forecast?.temp ? forecast : mockCurrent} />
+      <div className="flex gap-5 w-full justify-center  h-[20rem]">
+        <CurrentWeather values={currentWeather} />
         <Map location={location} />
         <Cities />
       </div>
-      <div className="flex gap-5 w-full justify-center h-[25rem] ">
-        <Forecast />
+      <div className="flex gap-5 w-full justify-center  h-[25rem] ">
+        <Forecast daily={forecast.timelines.daily} />
         <WeatherGraph />
       </div>
       <div></div>
@@ -51,7 +49,7 @@ export default function HomeDash() {
 }
 
 /**
- * The reverse geocoding API returns a list of place names like 'New York', 'New York County', 
+ * The reverse geocoding API returns a list of place names like 'New York', 'New York County',
  * 'New York City' in an inconsistent order. This function attempts to consistently pick a name
  * in order to avoid duplicate cache results. It prefers names that are already in the cache, then
  * state names, local english names, and then finally the generic 'name'.
@@ -62,7 +60,7 @@ function findBestLocation(resp?: ReverseGeocodeResponse) {
   }
 
   let preferred;
-  for (const {name, state, local_names} of resp) {
+  for (const { name, state, local_names } of resp) {
     if (localStorage.getItem(name)) {
       return name;
     } else if (state && localStorage.getItem(state)) {
@@ -92,7 +90,7 @@ async function cachedFetchForecast(loc: UserLocation) {
     const data = localStorage.getItem(name);
     console.log(`geocoded position for ${loc} (${name})`);
     if (data) {
-      const {forecast, lastFetchTime} = JSON.parse(data);
+      const { forecast, lastFetchTime } = JSON.parse(data);
       const twentyMinutes = 20 * 60 * 1000;
       if (now - lastFetchTime < twentyMinutes) {
         console.log(`retrieved forecast for ${loc} (${name}) from cache`);
@@ -109,7 +107,7 @@ async function cachedFetchForecast(loc: UserLocation) {
 
   if (name) {
     console.log(`retrieved forecast from API for ${loc}, caching as ${name}`);
-    localStorage.setItem(name, JSON.stringify({forecast, lastFetchTime: now}))
+    localStorage.setItem(name, JSON.stringify({ forecast, lastFetchTime: now }));
   } else {
     console.log(`retrieved forecast from API for ${loc}, not caching`);
   }

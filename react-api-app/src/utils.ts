@@ -30,7 +30,11 @@ export type Values = {
   snowIntensity: number;
   windSpeed: number;
   cloudCover: number;
+  cloudCoverAvg: number;
   humidity: number;
+  temperatureApparentMax: number;
+  temperatureApparentMin: number;
+  rainAccumulationSum: number;
 };
 
 export type Timeline = {
@@ -125,8 +129,8 @@ export class CurrentWeatherStats {
   icon: string;
   message: string;
 
-  constructor(timeline: Timeline) {
-    const { cloudCover: clouds, rainIntensity } = timeline.values;
+  constructor(values: Values) {
+    const { cloudCover: clouds, rainIntensity } = values;
     if (rainIntensity > 0) {
       this.icon = "/rainy-day.png";
       if (rainIntensity < 10) {
@@ -143,9 +147,34 @@ export class CurrentWeatherStats {
       this.icon = "/cloudy.png";
       this.message = "Cloudy";
     }
-    this.temp = timeline.values.temperature;
+    this.temp = values.temperature;
     this.clouds = clouds;
-    this.wind = timeline.values.windSpeed;
-    this.humidity = timeline.values.humidity;
+    this.wind = values.windSpeed;
+    this.humidity = values.humidity;
+  }
+}
+
+export class DailyWeatherStats {
+  formattedDate: string;
+  temp: string;
+  icon: string;
+
+  constructor({time, values}: Timeline) {
+    const date = new Date(time);
+    const month = date.toLocaleString('default', { month: 'long' });
+    const numDay = date.getDate(); // 21, for example
+    const weekday = date.toLocaleString('default', { weekday: 'short' });
+    this.formattedDate = `${numDay} ${month}, ${weekday}`
+
+    let high = values.temperatureApparentMax
+    let low = values.temperatureApparentMin
+    this.temp = `${Math.floor(high)}°/${Math.floor(low)}°`
+    if (values.rainAccumulationSum > 0) {
+      this.icon = '/rainy-day.png'
+    } else if (values.cloudCoverAvg < 20) {
+      this.icon = '/sunny.png'
+    } else {
+      this.icon = '/cloudy.png'
+    }
   }
 }
