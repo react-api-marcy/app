@@ -4,7 +4,7 @@ import CurrentWeather from "./CurrentWeather";
 import Forecast from "./Forecast";
 import Map from "./Map";
 import WeatherGraph from "./WeatherGraph";
-import { CurrentWeatherStats, ForecastResponse, UserLocation, fetchForecast, reverseGeocode, useLocation } from "../utils";
+import { CurrentWeatherStats, ForecastResponse, ReverseGeocodeResponse, UserLocation, fetchForecast, reverseGeocode, useLocation } from "../utils";
 
 const mockCurrent = {
   clouds: 28,
@@ -50,13 +50,47 @@ export default function HomeDash() {
   );
 }
 
+/**
+ * The reverse geocoding API returns a list of place names like 'New York', 'New York County', 
+ * 'New York City' in an inconsistent order. This function attempts to consistently pick a name
+ * in order to avoid duplicate cache results. It prefers names that are already in the cache, then
+ * state names, local english names, and then finally the generic 'name'.
+ */
+function findBestLocation(resp?: ReverseGeocodeResponse) {
+  if (!resp || !resp.length) {
+    return;
+  }
+
+  let preferred;
+  for (const {name, state, local_names} of resp) {
+    if (localStorage.getItem(name)) {
+      return name;
+    } else if (state && localStorage.getItem(state)) {
+      return state;
+    } else if (local_names.en && localStorage.getItem(local_names.en)) {
+      return local_names.en;
+    }
+
+    if (!preferred) {
+      if (state) {
+        preferred = state;
+      } else if (local_names.en) {
+        preferred = local_names.en;
+      } else {
+        preferred = name;
+      }
+    }
+  }
+
+  return preferred;
+}
+
 async function cachedFetchForecast(loc: UserLocation) {
-  const geocoded = await reverseGeocode(loc);
   const now = Date.now();
-  const name = geocoded?.[0]?.name;
+  const name = findBestLocation(await reverseGeocode(loc));
   if (name) {
     const data = localStorage.getItem(name);
-    console.log(`geocoded position for ${loc}: ${name}`);
+    console.log(`geocoded position for ${loc} (${name})`);
     if (data) {
       const {forecast, lastFetchTime} = JSON.parse(data);
       const twentyMinutes = 20 * 60 * 1000;
@@ -69,7 +103,7 @@ async function cachedFetchForecast(loc: UserLocation) {
 
   const forecast = await fetchForecast(loc);
   if (!forecast) {
-    console.log("couldn't retrieve forecast from API nor the cache...");
+    console.log(`couldn't retrieve forecast for ${loc} (${name}) from API nor the cache...`);
     return;
   }
 

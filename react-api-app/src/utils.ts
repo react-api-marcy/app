@@ -63,7 +63,6 @@ export type ReverseGeocodeResponse = {
 export const reverseGeocode = ({ lat, lon }: UserLocation) => {
   const url = new URL(`${OPENWEATHER_BASE}/reverse?lat=${lat}&lon=${lon}`);
   url.searchParams.set("appid", OPENWEATHER_KEY);
-  url.searchParams.set("limit", "1");
   // identical latitude and longitude coords will always return the same city, so cache indefinitely
   return fetchJson<ReverseGeocodeResponse>(url, { cache: "force-cache" });
 };
@@ -93,7 +92,7 @@ export const useLocation = () => {
     watchLocationPermissionChange: true,
     onSuccess: ({ coords }) => {
       console.log("got location from browser");
-      setLocation({ lat: coords.latitude, lon: coords.longitude });
+      setLocation(new UserLocation(coords.latitude, coords.longitude));
     },
     onError: (_err) => {
       console.warn("couldn't get geolocation, attempting fallback");
