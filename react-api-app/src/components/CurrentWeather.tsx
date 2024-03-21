@@ -32,11 +32,11 @@ export default function CurrentWeather({ values }: { values: ForecastResponse })
         <div className="flex text-center justify-between ">
           <div >
             <img className="w-[1.6rem] mb-1 h-[1.6rem]" src="/drop.png"></img>
-            <h1>{currentWeather.humidity}</h1>
+            <h1>{currentWeather.humidity + '%'}</h1>
           </div>
           <div>
             <img className="w-[1.6rem] mb-1 h-[1.6rem]" src="/cloud.png"></img>
-            <h1>{currentWeather.clouds}</h1>
+            <h1>{currentWeather.clouds + '%'}</h1>
           </div>
           <div>
             <img className="w-[1.6rem] mb-1 h-[1.6rem]" src="/wind.png"></img>

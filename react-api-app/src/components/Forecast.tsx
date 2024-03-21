@@ -1,23 +1,23 @@
-import { ForecastResponse, getWeeklyWeatherStats } from "../utils";
+import { ForecastResponse, dailyStats, getWeeklyWeatherStats } from "../utils";
 
-function Forecast({ values }: ForecastResponse) {
-  const forecast = getWeeklyWeatherStats(values)
+function Forecast({ values }: { values: ForecastResponse }) {
+  const forecast : Array<dailyStats> = getWeeklyWeatherStats(values)
   return <div className="w-[20%] pl-5 pt-3    bg-opacity-15 bg-white rounded-[25px]">
-    <h1 className="text-[1.1rem] font-bold   ">Forecast</h1>
+    <h1 className="text-[1.1rem] font-bold pb-5   ">Forecast</h1>
     <ul className="flex flex-col gap-5">
       {forecast.map((day) => {
-        return <li className="flex ">
-          <div>
+        return <li className="flex gap-5 ">
+        
               <img  className='w-[2.1rem]' src={day.icon}></img>
-          </div>
-              <h1>day.</h1>
-          <div>
+     
+              <h1>{day.temp}</h1>
+     
 
-          </div>
+      
+          <h1>{day.formatedDate}</h1>
 
-          <div>
 
-          </div>
+
         </li>
       })}
     </ul>
