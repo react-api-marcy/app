@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useGeolocated } from "react-geolocated";
+import { AppCtx, DefaultLocation } from "./AppCtx";
 
 const TOMORROW_KEY = import.meta.env.VITE_TOMORROW_KEY;
 const TOMORROW_BASE = "https://api.tomorrow.io/v4/weather";
@@ -90,8 +91,17 @@ export class UserLocation {
   }
 }
 
+const CITY_COORDS: Record<DefaultLocation, UserLocation> = {
+  "New York": new UserLocation(40.7484, -73.862),
+  London: new UserLocation(51.507222, -0.1275),
+  "Los Angeles": new UserLocation(34.05, -118.25),
+  Miami: new UserLocation(25.78, -80.21),
+};
+
 export const useLocation = () => {
-  const [location, setLocation] = useState(new UserLocation(40.7484, -73.862));
+  const { useCurrentLocation, defaultLocation } = useContext(AppCtx);
+  const [location, setLocation] = useState(CITY_COORDS[defaultLocation]);
+  const [coords, setCoords] = useState<UserLocation | undefined>(undefined);
   useGeolocated({
     positionOptions: {
       enableHighAccuracy: true,
@@ -99,12 +109,23 @@ export const useLocation = () => {
     userDecisionTimeout: 5000,
     watchLocationPermissionChange: true,
     onSuccess: ({ coords }) => {
+      if (!useCurrentLocation) {
+        setLocation(CITY_COORDS[defaultLocation]);
+        return;
+      }
+
       console.log("got location from browser");
-      setLocation(new UserLocation(coords.latitude, coords.longitude));
+      const loc = new UserLocation(coords.latitude, coords.longitude);
+      setLocation(loc);
+      setCoords(loc);
     },
     onError: (_err) => {
-      console.warn("couldn't get geolocation, attempting fallback");
+      if (!useCurrentLocation) {
+        setLocation(CITY_COORDS[defaultLocation]);
+        return;
+      }
 
+      console.warn("couldn't get geolocation, attempting fallback");
       const url = new URL("http://ip-api.com/json/?fields=status,message,lat,lon");
       fetchJson<LocationResponse>(url).then((resp) => {
         if (
@@ -117,10 +138,20 @@ export const useLocation = () => {
         }
 
         console.log(`got fallback location from IP:`, resp);
-        setLocation(new UserLocation(resp.lat, resp.lon));
+        const loc = new UserLocation(resp.lat, resp.lon);
+        setLocation(loc);
+        setCoords(loc);
       });
     },
   });
 
+  useEffect(() => {
+    console.log(coords);
+    if (!useCurrentLocation || !coords) {
+      setLocation(CITY_COORDS[defaultLocation]);
+    } else {
+      setLocation(coords);
+    }
+  }, [useCurrentLocation, defaultLocation]);
   return location;
 };

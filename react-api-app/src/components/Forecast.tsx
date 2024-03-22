@@ -10,7 +10,7 @@ export class DailyWeatherStats {
     const month = date.toLocaleString("default", { month: "long" });
     const numDay = date.getDate(); // 21, for example
     const weekday = date.toLocaleString("default", { weekday: "short" });
-    this.formattedDate = `${numDay} ${month}, ${weekday}`;
+    this.formattedDate = `${weekday}, ${month} ${numDay}`;
 
     let high = values.temperatureApparentMax;
     let low = values.temperatureApparentMin;
