@@ -4,7 +4,7 @@ import CurrentWeather from "./CurrentWeather";
 import Forecast from "./Forecast";
 import Map from "./Map";
 import WeatherGraph from "./WeatherGraph";
-import mockForecast from './mockForecast.json'
+import mockForecast from '../../data/mockForecast.json'
 import {
   ForecastResponse,
   ReverseGeocodeResponse,
