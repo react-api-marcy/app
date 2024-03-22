@@ -38,9 +38,9 @@ export default function Settings() {
               >
                 <path
                   stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
                 />
               </svg>
@@ -89,11 +89,10 @@ export default function Settings() {
                 className="disabled:text-gray-600 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 onChange={(e) => setDefaultLocation(e.target.value as DefaultLocation)}
                 disabled={useCurrentLocation}
+                value={defaultLocation}
               >
                 {CITIES.map((city) => (
-                  <option value={city} selected={defaultLocation === city}>
-                    {city}
-                  </option>
+                  <option value={city}>{city}</option>
                 ))}
               </select>
             </div>
