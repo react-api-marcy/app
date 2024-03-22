@@ -151,3 +151,68 @@ export const getCurrentWeatherStats = (forecast: any) => {
 
   return { temp, clouds, wind, humidity, icon, message } as CurrentWeatherStats
 }
+
+
+export type dailyStats =  {
+  formatedDate: string, temp: string, icon: string
+}
+export const getWeeklyWeatherStats = (forecast: any) => {
+  const res: Array<dailyStats> = []
+  const daily = forecast?.timelines?.daily
+ 
+  daily.forEach((day: any, i: number) => {
+    // Getting formatted date
+    const dateString = day.time;
+    
+    const date = new Date(dateString);
+    const month = date.toLocaleString('default', { month: 'long' });
+    
+    const numDay = date.getDate(); // 21, for example
+    const weekday = date.toLocaleString('default', { weekday: 'short' });
+   
+    const formatedDate = `${numDay} ${month}, ${weekday}`
+
+
+    let high = day?.values.temperatureApparentMax
+    console.log(dateString)
+    let low = day?.values.temperatureApparentMin
+    let temp = `${Math.floor(high)}°/${Math.floor(low)}°`
+
+    let clouds = day?.values.cloudCoverAvg
+    let rainIntensity = day?.values.rainAccumulationSum
+    let icon;
+    if (rainIntensity > 0) {
+      icon = '/rainy-day.png'
+    } else if (clouds < 20) {
+      icon = '/sunny.png'
+    } else {
+      icon = '/cloudy.png'
+    }
+    res.push({ formatedDate, temp, icon })
+  })
+  return res
+}
+
+export type graphDataPoint = {time: string, temp: number}
+export const getHourlyWeatherStats = (forecast: any) => {
+  const hourly = forecast?.timelines?.hourly.slice(0,10)
+  const res : Array<graphDataPoint> = []
+  hourly.forEach((hour: any, i: number) => {
+    let time;
+    if (i === 0) {
+      time = 'Now'
+    }
+    else {
+        const dateString = hour.time
+        const date = new Date(dateString);
+        let hours = date.getHours();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        time = `${hours} ${ampm}`
+    }
+    const temp = Math.floor(hour.values.temperature)
+    res.push({time, temp})
+  })
+  return res
+}
