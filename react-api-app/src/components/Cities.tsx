@@ -14,7 +14,7 @@ export default function Cities() {
           continue;
         }
 
-        setCityData(cityData => ({
+        setCityData((cityData) => ({
           ...cityData,
           [city]: new CurrentWeatherStats(res.timelines.minutely[0].values),
         }));
@@ -30,8 +30,16 @@ export default function Cities() {
         <ul className="flex font-light flex-col gap-3">
           {CITIES.map((city) => (
             <li key={city}>
-              {city}
-              {cityData[city] && <span> - {cityData[city].message}</span>}
+              {cityData[city] ? (
+                <>
+                  <img className="w-[2.1rem] inline" src={cityData[city].icon}></img>
+                  <span className="p-2">
+                    {city} - {cityData[city].message}
+                  </span>
+                </>
+              ) : (
+                <span>{city} - Loading...</span>
+              )}
             </li>
           ))}
         </ul>
