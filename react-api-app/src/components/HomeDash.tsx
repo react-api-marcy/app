@@ -31,7 +31,7 @@ export default function HomeDash() {
   // console.log(location);
   // console.log("forecast", forecast);
   return (
-    <div className="flex z-[1000] relative pt-[5rem] gap-5 justify-center flex-col">
+    <div className="flex z-[1000] relative pt-[2.95rem] gap-5 justify-center flex-col">
       <div className="flex gap-5 w-full justify-center h-[20rem]">
         <CurrentWeather values={forecast.timelines.minutely[0].values} />
         <Map location={location} />

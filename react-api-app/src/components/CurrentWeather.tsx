@@ -46,16 +46,16 @@ export default function CurrentWeather({ values }: { values: Values }) {
     <div className="w-[20%] flex justify-center bg-black bg-opacity-15 backdrop-blur-lg rounded-[25px] ">
       <div className=" ">
         <div className="pl-3">
-          <h1 className="text-[1.1rem] pt-5  font-bold">Current Weather</h1>
+          <h1 className="text-[1.1rem] pt-5 font-bold">Current Weather</h1>
           <h1 className="font-thin">{formattedTime}</h1>
         </div>
 
-        <div className="flex pb-5  ">
+        <div className="flex pb-5">
           <img src={stats.icon} width={130}></img>
           <div className="">
             <div className="flex">
               <h1 className="text-[4.3rem] font-bold">{Math.floor(stats.temp)}</h1>
-              <span className=" translate-y-[1.2rem] text-[1rem]">°F</span>
+              <span className="translate-y-[1.2rem] text-[1rem]">°F</span>
             </div>
 
             <h1 className="text-center">{stats.message}</h1>
