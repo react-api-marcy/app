@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { useGeolocated } from "react-geolocated";
 
-const API_KEY = import.meta.env.VITE_TOMORROW_KEY;
-const API_BASE = "https://api.tomorrow.io/v4/weather";
+const TOMORROW_KEY = import.meta.env.VITE_TOMORROW_KEY;
+const TOMORROW_BASE = "https://api.tomorrow.io/v4/weather";
+
+const OPENWEATHER_KEY = import.meta.env.VITE_OPENWEATHER_KEY;
+const OPENWEATHER_BASE = "https://api.openweathermap.org/geo/1.0";
 
 export const fetchJson = async <T>(url: RequestInfo | URL, init?: RequestInit) => {
   try {
@@ -25,6 +28,13 @@ export type Values = {
   rainIntensity: number;
   sleetIntesity: number;
   snowIntensity: number;
+  windSpeed: number;
+  cloudCover: number;
+  cloudCoverAvg: number;
+  humidity: number;
+  temperatureApparentMax: number;
+  temperatureApparentMin: number;
+  rainAccumulationSum: number;
 };
 
 export type Timeline = {
@@ -40,52 +50,48 @@ export type ForecastResponse = {
   };
 };
 
-export const fetchForecast = async (loc: UserLocation) => {
-  const cachedData = localStorage.getItem('forecast')
-  const lastFetchTime = localStorage.getItem('last_fetch_time')
+export const fetchForecastByLocation = (loc: string) => {
+  const url = new URL(`${TOMORROW_BASE}/forecast?location=${loc}`);
+  url.searchParams.set("apikey", TOMORROW_KEY);
+  url.searchParams.set("units", "imperial");
+  return fetchJson<ForecastResponse>(url);
+};
 
-  const currentTime = new Date().getTime();
-  const twentyMinutes = 20 * 60 * 1000;
+export const fetchForecast = (loc: UserLocation) => {
+  return fetchForecastByLocation(`${loc.lat},${loc.lon}`);
+};
 
-  if (cachedData && lastFetchTime) {
-    const timeSinceLastFetch = currentTime - parseInt(lastFetchTime, 10);
-    if (timeSinceLastFetch < twentyMinutes) {
-      return Promise.resolve(JSON.parse(cachedData));
-    }
-  }
+export type ReverseGeocodeResponse = {
+  name: string;
+  country: string;
+  state?: string;
+  local_names: { en?: string };
+}[];
 
-
-  const location =
-    loc.kind === "precise" ? `${loc.lat},${loc.lon}` : `${loc.zip}%20${loc.countryCode}`;
-  // UrlSearchParams::set encodes spaces using '+', but tomorrow's api expects %20, so encode
-  // manually
-  const url = new URL(`${API_BASE}/forecast?location=${location}&apikey=${API_KEY}&units=imperial`);
-  const forecast = await fetchJson<ForecastResponse>(url);
-  localStorage.setItem('weatherData', JSON.stringify(forecast)); // Convert object to string for storage
-  localStorage.setItem('lastFetchTime', currentTime.toString());
-  console.log(forecast)
-  return forecast
+export const reverseGeocode = ({ lat, lon }: UserLocation) => {
+  const url = new URL(`${OPENWEATHER_BASE}/reverse?lat=${lat}&lon=${lon}`);
+  url.searchParams.set("appid", OPENWEATHER_KEY);
+  // identical latitude and longitude coords will always return the same city, so cache indefinitely
+  return fetchJson<ReverseGeocodeResponse>(url, { cache: "force-cache" });
 };
 
 type LocationResponse = {
   status: "success" | "fail";
   message: string;
-  countryCode?: string;
-  zip?: string;
   lat?: number;
   lon?: number;
 };
 
-export type UserLocation =
-  | { kind: "precise"; lat: number; lon: number }
-  | { kind: "weak"; zip: string; countryCode: string };
+export class UserLocation {
+  constructor(public lat: number, public lon: number) {}
+
+  toString() {
+    return `latitude=${this.lat}, longitude=${this.lon}`;
+  }
+}
 
 export const useLocation = () => {
-  const [location, setLocation] = useState<UserLocation>({
-    kind: "weak",
-    countryCode: "US",
-    zip: "11232",
-  });
+  const [location, setLocation] = useState(new UserLocation(40.7484, -73.862));
   useGeolocated({
     positionOptions: {
       enableHighAccuracy: true,
@@ -94,125 +100,27 @@ export const useLocation = () => {
     watchLocationPermissionChange: true,
     onSuccess: ({ coords }) => {
       console.log("got location from browser");
-      setLocation({ kind: "precise", lat: coords.latitude, lon: coords.longitude });
+      setLocation(new UserLocation(coords.latitude, coords.longitude));
     },
-    onError: (err) => {
+    onError: (_err) => {
       console.warn("couldn't get geolocation, attempting fallback");
 
-      const url = new URL("http://ip-api.com/json/?fields=status,message,countryCode,zip,lat,lon");
-      fetchJson<LocationResponse>(url, { cache: "force-cache" }).then((resp) => {
-        if (!resp || resp.status !== "success") {
+      const url = new URL("http://ip-api.com/json/?fields=status,message,lat,lon");
+      fetchJson<LocationResponse>(url).then((resp) => {
+        if (
+          !resp ||
+          resp.status !== "success" ||
+          resp.lon === undefined ||
+          resp.lat === undefined
+        ) {
           return console.warn(`couldn't get fallback geolocation: ${resp?.message}`);
         }
 
-        console.log(`got fallback location: ${resp}`);
-        if (resp?.lat && resp?.lon) {
-          setLocation({ kind: "precise", lat: resp.lat, lon: resp.lon });
-        } else {
-          setLocation({ kind: "weak", zip: resp?.zip!, countryCode: resp?.countryCode! });
-        }
+        console.log(`got fallback location from IP:`, resp);
+        setLocation(new UserLocation(resp.lat, resp.lon));
       });
     },
   });
 
   return location;
 };
-
-
-export interface CurrentWeatherStats {
-  temp: number, clouds: number, wind: number, humidity: number, icon: string, message: string
-}
-export const getCurrentWeatherStats = (forecast: any) => {
-  let temp = forecast?.timelines?.minutely?.[0]?.values.temperature
-  let humidity = forecast?.timelines?.minutely?.[0]?.values.humidity;
-  let wind = forecast?.timelines?.minutely?.[0]?.values.windSpeed
-  let clouds = forecast?.timelines?.minutely?.[0]?.values.cloudCover
-  let rainIntensity = forecast?.timelines?.minutely?.[0]?.values.rainIntensity
-
-  let icon;
-  let message;
-  if (rainIntensity > 0) {
-    icon = '/rainy-day.png'
-    if (rainIntensity < 10) {
-      message = 'Light Rain'
-    } else if (rainIntensity > 30) {
-      message = 'Moderate Rain'
-    } else {
-      message = 'Heavy Rain'
-    }
-
-  } else if (clouds < 20) {
-    icon = '/sunny.png'
-    message = 'Mostly Sunny'
-  } else {
-    icon = '/cloudy.png'
-    message = 'Cloudy'
-  }
-
-  return { temp, clouds, wind, humidity, icon, message } as CurrentWeatherStats
-}
-
-
-export type dailyStats =  {
-  formatedDate: string, temp: string, icon: string
-}
-export const getWeeklyWeatherStats = (forecast: any) => {
-  const res: Array<dailyStats> = []
-  const daily = forecast?.timelines?.daily
- 
-  daily.forEach((day: any, i: number) => {
-    // Getting formatted date
-    const dateString = day.time;
-    
-    const date = new Date(dateString);
-    const month = date.toLocaleString('default', { month: 'long' });
-    
-    const numDay = date.getDate(); // 21, for example
-    const weekday = date.toLocaleString('default', { weekday: 'short' });
-   
-    const formatedDate = `${numDay} ${month}, ${weekday}`
-
-
-    let high = day?.values.temperatureApparentMax
-    console.log(dateString)
-    let low = day?.values.temperatureApparentMin
-    let temp = `${Math.floor(high)}°/${Math.floor(low)}°`
-
-    let clouds = day?.values.cloudCoverAvg
-    let rainIntensity = day?.values.rainAccumulationSum
-    let icon;
-    if (rainIntensity > 0) {
-      icon = '/rainy-day.png'
-    } else if (clouds < 20) {
-      icon = '/sunny.png'
-    } else {
-      icon = '/cloudy.png'
-    }
-    res.push({ formatedDate, temp, icon })
-  })
-  return res
-}
-
-export type graphDataPoint = {time: string, temp: number}
-export const getHourlyWeatherStats = (forecast: any) => {
-  const hourly = forecast?.timelines?.hourly.slice(0,10)
-  const res : Array<graphDataPoint> = []
-  hourly.forEach((hour: any, i: number) => {
-    let time;
-    if (i === 0) {
-      time = 'Now'
-    }
-    else {
-        const dateString = hour.time
-        const date = new Date(dateString);
-        let hours = date.getHours();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        time = `${hours} ${ampm}`
-    }
-    const temp = Math.floor(hour.values.temperature)
-    res.push({time, temp})
-  })
-  return res
-}
