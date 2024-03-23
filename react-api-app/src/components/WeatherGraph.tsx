@@ -8,6 +8,8 @@ import {
   LabelProps,
 } from "recharts";
 import { Timeline } from "../utils";
+import { AppCtx } from "../AppCtx";
+import { useContext } from "react";
 
 export const getHourlyWeatherStats = (hourly: Timeline[]) => {
   return hourly.slice(0, 10).map((hour, i) => {
@@ -35,10 +37,11 @@ const renderCustomizedLabel: React.FC<LabelProps> = (props) => {
 };
 
 export default function WeatherGraph({ hourly }: { hourly: Timeline[] }) {
+  const {darkMode} = useContext(AppCtx)
   const data = getHourlyWeatherStats(hourly);
   // console.log(data);
   return (
-    <div className="w-[61.5%]  pb-[5rem]  bg-opacity-15 bg-white  rounded-[25px]">
+    <div className={`w-[61.5%]  pb-[5rem]  bg-opacity-15 ${darkMode? 'bg-black' : 'bg-white'}  rounded-[25px]`}>
       <h1 className="pt-[2rem] pb-5  text-[1.2rem] pl-8">Summary</h1>
 
       <ResponsiveContainer width="100%" height="90%">

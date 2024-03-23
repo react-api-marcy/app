@@ -1,38 +1,47 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Cities from "./Cities";
 import CurrentWeather from "./CurrentWeather";
 import Forecast from "./Forecast";
 import Map from "./Map";
 import WeatherGraph from "./WeatherGraph";
-import mockForecast from '../../data/mockForecast.json'
+import mockForecast from "../../data/mockForecast.json";
 import {
   ForecastResponse,
   ReverseGeocodeResponse,
   UserLocation,
+  fetchCityForecast,
   fetchForecast,
   reverseGeocode,
   useLocation,
+  CITY_COORDS,
 } from "../utils";
-
+import { AppCtx, DefaultLocation } from "../AppCtx";
 
 export default function HomeDash() {
   const location = useLocation();
+  const { useCurrentLocation } = useContext(AppCtx);
   const [forecast, setForecast] = useState(mockForecast as unknown as ForecastResponse);
   useEffect(() => {
     (async () => {
-      const forecast = await fetchLocForecast(location);
+      let forecast;
+      if ((location as any) in CITY_COORDS || !useCurrentLocation)
+        forecast = await fetchCityForecast(
+          (Object.keys(CITY_COORDS) as DefaultLocation[]).find(
+            (key) => CITY_COORDS[key] === location
+          )!
+        );
+      else forecast = await fetchLocForecast(location as UserLocation);
+
       if (!forecast) {
         return;
       }
 
       setForecast(forecast);
     })();
-  }, [location]);
+  }, []);
 
-  // console.log(location);
-  // console.log("forecast", forecast);
   return (
-    <div className="flex z-[1000] relative pt-[2.95rem] gap-5 justify-center flex-col">
+    <div className="flex z-[1000] relative pt-[5.5rem] gap-5 justify-center flex-col">
       <div className="flex gap-5 w-full justify-center h-[20rem]">
         <CurrentWeather values={forecast.timelines.minutely[0].values} />
         <Map location={location} />

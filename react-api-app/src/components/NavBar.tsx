@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function NavBar() {
   return (
-    <header className="header z-[2000] w-full bg-sky-900 shadow-md flex items-center justify-between px-8 py-02">
+    <header className="header absolute z-[2000] w-full bg-black bg-opacity-20  flex items-center justify-between px-8 py-02">
       <h1 className="w-3/12">
         <Link to="/">
           <ul className="font-semibold text-lg flex items-center">
