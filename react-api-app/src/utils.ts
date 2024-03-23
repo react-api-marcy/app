@@ -91,11 +91,11 @@ export class UserLocation {
   }
 }
 
-const CITY_COORDS: Record<DefaultLocation, UserLocation> = {
+export const CITY_COORDS: Record<DefaultLocation, UserLocation> = {
   "New York": new UserLocation(40.7484, -73.862),
-  London: new UserLocation(51.507222, -0.1275),
+  'London': new UserLocation(51.507222, -0.1275),
   "Los Angeles": new UserLocation(34.05, -118.25),
-  Miami: new UserLocation(25.78, -80.21),
+  'Miami': new UserLocation(25.78, -80.21),
 };
 
 export const useLocation = () => {
@@ -155,3 +155,28 @@ export const useLocation = () => {
   }, [useCurrentLocation, defaultLocation]);
   return location;
 };
+
+
+export async function fetchCityForecast(city: string) {
+  const now = Date.now();
+  const name = city.toLowerCase().replace(/\s+/g, "");
+  const data = localStorage.getItem(name);
+  if (data) {
+    const { forecast, lastFetchTime } = JSON.parse(data);
+    const oneHour = 60 * 60 * 1000;
+    if (now - lastFetchTime < oneHour) {
+      console.log(`[cities] retrieved forecast for city (${name}) from cache`);
+      return forecast as ForecastResponse;
+    }
+  }
+
+  const forecast = await fetchForecastByLocation(city.toLowerCase().replace(/\s+/g, "%20"));
+  if (!forecast) {
+    console.log(`couldn't retrieve forecast for ${name} from API nor the cache...`)
+    return;
+  }
+
+  console.log(`retrieved forecast and caching ${name}`);
+  localStorage.setItem(name, JSON.stringify({ forecast, lastFetchTime: now }));
+  return forecast;
+}

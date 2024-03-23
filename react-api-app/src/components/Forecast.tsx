@@ -1,4 +1,6 @@
+import { useContext } from "react";
 import { Timeline } from "../utils";
+import { AppCtx } from "../AppCtx";
 
 export class DailyWeatherStats {
   formattedDate: string;
@@ -26,9 +28,11 @@ export class DailyWeatherStats {
 }
 
 export default function Forecast({ daily }: { daily: Timeline[] }) {
+  const {darkMode} = useContext(AppCtx)
+  
   const forecast = daily.map((timeline) => new DailyWeatherStats(timeline));
   return (
-    <div className="w-[20%] pl-5 pt-3 bg-opacity-15 bg-white rounded-[25px]">
+    <div className={`w-[20%] pl-5 pt-3 bg-opacity-15 ${darkMode? 'bg-black': 'bg-white'} rounded-[25px]`}>
       <h1 className="text-[1.1rem] font-bold pb-5">Forecast</h1>
       <ul className="flex flex-col gap-5">
         {forecast.map((day) => {

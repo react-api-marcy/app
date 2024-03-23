@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
-import { CITIES } from "./Cities";
+import { CITIES } from "../components/Cities";
 import { AppCtx, DefaultLocation } from "../AppCtx";
 
 export default function Settings() {
@@ -18,15 +18,17 @@ export default function Settings() {
     <div
       id="default-modal"
       tabIndex={-1}
-      className="overflow-y-auto z-[3000] overflow-x-hidden fixed top-0 right-0 left-500 justify-center items-center w-full flex items-center h-screen"
+      className={` ${
+        darkMode ? "bg-gray-900" : "bg-gray-700"
+      } overflow-y-auto z-[3000] overflow-x-hidden  justify-center items-center w-full h-screen  flex  `}
     >
-      <div className="relative p-4 w-full max-w-2xl max-h-full">
-        <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
+      <div className=" p-4 w-full h-full">
+        <div className="    h-full w-full mt-12 ">
           <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Settings</h3>
+            <h3 className="text-xl font-semibold text-black  dark:text-white">Settings</h3>
             <button
               type="button"
-              className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+              className="text-gray-100 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center "
               onClick={() => nav("/")}
             >
               <svg
@@ -50,16 +52,14 @@ export default function Settings() {
           <div className="p-4 md:p-5 space-y-4">
             <div className="block">
               <input
+                className="w-4 translate-y-[1px] h-4"
                 type="checkbox"
                 name="darkmode"
                 id="darkmode"
                 checked={darkMode}
                 onChange={(e) => setDarkMode(!!e.target.checked)}
               />
-              <label
-                htmlFor="darkmode"
-                className="text-sm font-medium text-gray-500 dark:text-gray-400"
-              >
+              <label htmlFor="darkmode" className="text-lg  font-medium text-white">
                 {" "}
                 Dark Mode
               </label>
@@ -67,16 +67,14 @@ export default function Settings() {
 
             <div className="block">
               <input
+                className="w-4 translate-y-[1px] h-4"
                 type="checkbox"
                 name="curlocation"
                 id="curlocation"
                 checked={useCurrentLocation}
                 onChange={(e) => setUseCurrentLocation(!!e.target.checked)}
               />
-              <label
-                htmlFor="curlocation"
-                className="text-sm font-medium text-gray-500 dark:text-gray-400"
-              >
+              <label htmlFor="curlocation" className="text-lg font-medium text-white ">
                 {" "}
                 Use Current Location
               </label>
