@@ -58,9 +58,7 @@ export const fetchForecastByLocation = (loc: string) => {
   return fetchJson<ForecastResponse>(url);
 };
 
-export const fetchForecast = (loc: UserLocation) => {
-  return fetchForecastByLocation(`${loc.lat},${loc.lon}`);
-};
+export const fetchForecast = (loc: Coords) => fetchForecastByLocation(`${loc.lat},${loc.lon}`);
 
 export type ReverseGeocodeResponse = {
   name: string;
@@ -69,7 +67,7 @@ export type ReverseGeocodeResponse = {
   local_names: { en?: string };
 }[];
 
-export const reverseGeocode = ({ lat, lon }: UserLocation) => {
+export const reverseGeocode = ({ lat, lon }: Coords) => {
   const url = new URL(`${OPENWEATHER_BASE}/reverse?lat=${lat}&lon=${lon}`);
   url.searchParams.set("appid", OPENWEATHER_KEY);
   // identical latitude and longitude coords will always return the same city, so cache indefinitely
@@ -83,7 +81,7 @@ type LocationResponse = {
   lon?: number;
 };
 
-export class UserLocation {
+export class Coords {
   constructor(public lat: number, public lon: number) {}
 
   toString() {
@@ -91,17 +89,17 @@ export class UserLocation {
   }
 }
 
-export const CITY_COORDS: Record<DefaultLocation, UserLocation> = {
-  "New York": new UserLocation(40.7484, -73.862),
-  'London': new UserLocation(51.507222, -0.1275),
-  "Los Angeles": new UserLocation(34.05, -118.25),
-  'Miami': new UserLocation(25.78, -80.21),
+export const CITY_COORDS: Record<DefaultLocation, Coords> = {
+  "New York": new Coords(40.7484, -73.862),
+  London: new Coords(51.507222, -0.1275),
+  "Los Angeles": new Coords(34.05, -118.25),
+  Miami: new Coords(25.78, -80.21),
 };
 
 export const useLocation = () => {
   const { useCurrentLocation, defaultLocation } = useContext(AppCtx);
   const [location, setLocation] = useState(CITY_COORDS[defaultLocation]);
-  const [coords, setCoords] = useState<UserLocation | undefined>(undefined);
+  const [coords, setCoords] = useState<Coords | undefined>(undefined);
   useGeolocated({
     positionOptions: {
       enableHighAccuracy: true,
@@ -115,7 +113,7 @@ export const useLocation = () => {
       }
 
       console.log("got location from browser");
-      const loc = new UserLocation(coords.latitude, coords.longitude);
+      const loc = new Coords(coords.latitude, coords.longitude);
       setLocation(loc);
       setCoords(loc);
     },
@@ -138,7 +136,7 @@ export const useLocation = () => {
         }
 
         console.log(`got fallback location from IP:`, resp);
-        const loc = new UserLocation(resp.lat, resp.lon);
+        const loc = new Coords(resp.lat, resp.lon);
         setLocation(loc);
         setCoords(loc);
       });
@@ -156,8 +154,7 @@ export const useLocation = () => {
   return location;
 };
 
-
-export async function fetchCityForecast(city: string) {
+export const fetchCityForecast = async (city: string) => {
   const now = Date.now();
   const name = city.toLowerCase().replace(/\s+/g, "");
   const data = localStorage.getItem(name);
@@ -172,11 +169,11 @@ export async function fetchCityForecast(city: string) {
 
   const forecast = await fetchForecastByLocation(city.toLowerCase().replace(/\s+/g, "%20"));
   if (!forecast) {
-    console.log(`couldn't retrieve forecast for ${name} from API nor the cache...`)
+    console.log(`couldn't retrieve forecast for ${name} from API nor the cache...`);
     return;
   }
 
   console.log(`retrieved forecast and caching ${name}`);
   localStorage.setItem(name, JSON.stringify({ forecast, lastFetchTime: now }));
   return forecast;
-}
+};

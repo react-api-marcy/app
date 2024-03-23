@@ -42,7 +42,6 @@ export default function CurrentWeather({ values }: { values: Values }) {
     hour12: true,
   });
 
-//   const currentWeather : CurrentWeatherStats = CurrentWeatherStats(values)
   return (
     <div className="w-[20%] flex justify-center bg-black bg-opacity-15 backdrop-blur-lg rounded-[25px] ">
       <div className=" ">
@@ -63,7 +62,7 @@ export default function CurrentWeather({ values }: { values: Values }) {
           </div>
         </div>
         <div className="flex text-center justify-between ">
-          <div >
+          <div>
             <img className="w-[1.6rem] mb-1 h-[1.6rem]" src="/drop.png"></img>
             <h1>{stats.humidity}</h1>
           </div>

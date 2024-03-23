@@ -8,7 +8,7 @@ import mockForecast from "../../data/mockForecast.json";
 import {
   ForecastResponse,
   ReverseGeocodeResponse,
-  UserLocation,
+  Coords,
   fetchCityForecast,
   fetchForecast,
   reverseGeocode,
@@ -24,13 +24,15 @@ export default function HomeDash() {
   useEffect(() => {
     (async () => {
       let forecast;
-      if ((location as any) in CITY_COORDS || !useCurrentLocation)
+      if ((location as any) in CITY_COORDS || !useCurrentLocation) {
         forecast = await fetchCityForecast(
           (Object.keys(CITY_COORDS) as DefaultLocation[]).find(
             (key) => CITY_COORDS[key] === location
           )!
         );
-      else forecast = await fetchLocForecast(location as UserLocation);
+      } else {
+        forecast = await fetchLocForecast(location as Coords);
+      }
 
       if (!forecast) {
         return;
@@ -94,7 +96,7 @@ function findBestLocation(resp?: ReverseGeocodeResponse) {
   return preferred!.toLowerCase().replace(/\s+/g, "");
 }
 
-async function fetchLocForecast(loc: UserLocation) {
+async function fetchLocForecast(loc: Coords) {
   const now = Date.now();
   const name = findBestLocation(await reverseGeocode(loc));
   if (name) {

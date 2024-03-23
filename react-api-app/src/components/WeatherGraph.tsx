@@ -11,25 +11,19 @@ import { Timeline } from "../utils";
 import { AppCtx } from "../AppCtx";
 import { useContext } from "react";
 
-export const getHourlyWeatherStats = (hourly: Timeline[]) => {
+const getHourlyWeatherStats = (hourly: Timeline[]) => {
   return hourly.slice(0, 10).map((hour, i) => {
     const temp = Math.floor(hour.values.temperature);
-    if (i === 0) {
+    if (!i) {
       return { temp, time: "Now" };
     } else {
-      const dateString = hour.time;
-      const date = new Date(dateString);
-      let hours = date.getHours();
-      const ampm = hours >= 12 ? "PM" : "AM";
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      return { temp, time: `${hours} ${ampm}` };
+      const hours = new Date(hour.time).getHours();
+      return { temp, time: `${hours % 12 || 12} ${hours >= 12 ? "PM" : "AM"}` };
     }
   });
 };
 
-const renderCustomizedLabel: React.FC<LabelProps> = (props) => {
-  const { x, y, value } = props;
+const CustomLabel = ({ x, y, value }: LabelProps) => {
   if (x === undefined || y === undefined || value === undefined) return null;
   return (
     <text x={x} y={y} dy={-10} fill="white" fontSize={13} textAnchor="middle">{`${value}°C`}</text>
@@ -37,12 +31,16 @@ const renderCustomizedLabel: React.FC<LabelProps> = (props) => {
 };
 
 export default function WeatherGraph({ hourly }: { hourly: Timeline[] }) {
-  const {darkMode} = useContext(AppCtx)
+  const { darkMode } = useContext(AppCtx);
   const data = getHourlyWeatherStats(hourly);
   // console.log(data);
   return (
-    <div className={`w-[61.5%]  pb-[5rem]  bg-opacity-15 ${darkMode? 'bg-black' : 'bg-white'}  rounded-[25px]`}>
-      <h1 className="pt-[2rem] pb-5  text-[1.2rem] pl-8">Summary</h1>
+    <div
+      className={`w-[61.5%] pb-[5rem] bg-opacity-15 ${
+        darkMode ? "bg-black" : "bg-white"
+      } rounded-[25px]`}
+    >
+      <h1 className="pt-[2rem] pb-5 text-[1.2rem] pl-8">Summary</h1>
 
       <ResponsiveContainer width="100%" height="90%">
         <AreaChart data={data} margin={{ top: 50, right: 0, left: 0, bottom: 0 }}>
@@ -65,7 +63,7 @@ export default function WeatherGraph({ hourly }: { hourly: Timeline[] }) {
           >
             <LabelList
               dataKey="temp"
-              content={renderCustomizedLabel}
+              content={CustomLabel}
               position="top"
               style={{ fill: "white" }}
             />
